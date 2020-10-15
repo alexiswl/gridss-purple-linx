@@ -337,3 +337,35 @@ outputs:
     type: Directory
     outputBinding:
       glob: "$(inputs.output_dir)"
+  purity_file:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.tumor).purple.purity.tsv"
+  purity_range_file:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.tumor).purple.purity.range.tsv"
+  copy_number_file:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.tumor).purple.cnv.somatic.tsv"
+  gene_copy_number_file:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.tumor).purple.cnv.gene.tsv"
+  driver_catalog_file:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.tumor).driver.catalogue.tsv"
+  structural_vcf:
+    type: File?
+    secondaryFiles:
+      - ".tbi"
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.tumor).purple.sv.vcf.gz"
+  somatic_vcf:
+    type: File?
+    secondaryFiles:
+      - ".tbi"
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.tumor).purple.somatic.vcf.gz"

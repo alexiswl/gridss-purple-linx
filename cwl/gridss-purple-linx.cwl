@@ -449,13 +449,6 @@ inputs:
     type: string?
     doc: |
       Restrict fusion search to specified genes, separated by ';'
-  # Logging
-  write_vis_data_linx:
-    type: boolean?
-    doc: |
-      Write output to for generation of Circos clustering and chaining plots.
-      This should be set to true so that the linx_visualiser can take the required vis tsv files.
-    default: true
   log_debug_linx:
     type: boolean?
     doc: |
@@ -855,24 +848,15 @@ steps:
         source: ploidy_penalty_sub_one_major_allele_multiplier_purple
     out:
       - outdir
+      # Structural vcf explicitly required
+      - structural_vcf
     run: tools/purple-2.48.cwl
-  # Get sv_vcf from purple dir for linx input
-  get_sv_vcf_file_from_purple_dir_step:
-    in:
-      directory:
-        source: purple_step/outdir
-      file_basename:
-        source: get_tumor_sample_name/out_string
-        valueFrom: "$(self).purple.sv.vcf.gz"
-    out:
-      - vcf_file
-    run: expressions/get_vcf_file_from_directory_output.cwl
   linx_step:
     in:
       sample:
         source: get_tumor_sample_name/out_string
       sv_vcf:
-        source: get_sv_vcf_file_from_purple_dir_step/vcf_file
+        source: purple_step/structural_vcf
       purple_dir:
         source: purple_step/outdir
       output_dir:
@@ -905,27 +889,22 @@ steps:
       restricted_fusion_genes:
         source: restricted_fusion_genes_linx
       write_vis_data:
-        source: write_vis_data_linx
+        valueFrom: true
       log_debug:
         source: log_debug_linx
     out:
       - outdir
-    run: tools/linx-1.11.cwl
-  # Pre-vis steps, get necessary files from linx dir
-  get_linx_vis_files_for_linx_visualiser_step:
-    in:
-      directory:
-        source: linx_step/outdir
-      sample:
-        source: get_tumor_sample_name/out_string
-    out:
+      # Optional outputs when -write_vis_data in linx tool set to true
+      # Required for visualiser step
       - vis_segments
       - vis_sv_data
-      - vis_gene_exon
-      - vis_copy_number
       - vis_protein_domain
       - fusions_detailed
-    run: expressions/get_linx_vis_data_from_linx_dir.cwl
+      - vis_copy_number
+      - vis_gene_exon
+
+    run: tools/linx-1.11.cwl
+  #
   linx_visualiser_step:
     in:
       sample:
@@ -937,17 +916,17 @@ steps:
         source: sample_name
         valueFrom: "$(self)_linx_visualiser_data"
       segment:
-        source: get_linx_vis_files_for_linx_visualiser_step/vis_segments
+        source: linx_step/vis_segments
       link:
-        source: get_linx_vis_files_for_linx_visualiser_step/vis_sv_data
+        source: linx_step/vis_sv_data
       protein_domain:
-        source: get_linx_vis_files_for_linx_visualiser_step/vis_protein_domain
+        source: linx_step/vis_protein_domain
       fusion:
-        source: get_linx_vis_files_for_linx_visualiser_step/fusions_detailed
+        source: linx_step/fusions_detailed
       cna:
-        source: get_linx_vis_files_for_linx_visualiser_step/vis_copy_number
+        source: linx_step/vis_copy_number
       exon:
-        source: get_linx_vis_files_for_linx_visualiser_step/vis_gene_exon
+        source: linx_step/vis_gene_exon
       circos:
         source: circos_linx_visualiser
       inner_radius:
@@ -1016,7 +995,7 @@ outputs:
   # VCFs
   gridss_vcf:
     type: File
-    outputSource: gridss_step/out_vcf
+    outputSource: gridss_index_vcf_step/indexed_vcf
   gripss_filtered_vcf:
     type: File
     outputSource: gripss_step/gridss_filtered_vcf

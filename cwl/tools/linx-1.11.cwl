@@ -224,3 +224,49 @@ outputs:
     type: Directory
     outputBinding:
       glob: "$(inputs.output_dir)"
+  sv_annotations:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).svs.tsv"
+  breakends:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).breakend.tsv"
+  clusters:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).clusters.tsv"
+  links:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).links.tsv"
+  viral_inserts:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).viral_inserts.tsv"
+  # Specify the vis data files as optional outputs
+  # For importing into the linx visualiser tool
+  vis_segments:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).linx.vis_segments.tsv"
+  vis_sv_data:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).linx.vis_sv_data.tsv"
+  vis_gene_exon:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).linx.vis_gene_exon.tsv"
+  vis_copy_number:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).linx.vis_copy_number.tsv"
+  vis_protein_domain:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).linx.vis_protein_domain.tsv"
+  fusions_detailed:
+    type: File?
+    outputBinding:
+      glob: "$(inputs.output_dir)/$(inputs.sample).linx.vis_fusion.tsv"
