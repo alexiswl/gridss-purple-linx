@@ -889,7 +889,7 @@ steps:
       restricted_fusion_genes:
         source: restricted_fusion_genes_linx
       write_vis_data:
-        valueFrom: true
+        valueFrom: ${ return true; }
       log_debug:
         source: log_debug_linx
     out:
