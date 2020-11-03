@@ -357,13 +357,13 @@ outputs:
     type: File?
     outputBinding:
       glob: "$(inputs.output_dir)/$(inputs.tumor).driver.catalogue.tsv"
-  structural_vcf:
+  structural_vcf_out:
     type: File?
     secondaryFiles:
       - ".tbi"
     outputBinding:
       glob: "$(inputs.output_dir)/$(inputs.tumor).purple.sv.vcf.gz"
-  somatic_vcf:
+  somatic_vcf_out:
     type: File?
     secondaryFiles:
       - ".tbi"

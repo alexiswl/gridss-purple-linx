@@ -849,14 +849,14 @@ steps:
     out:
       - outdir
       # Structural vcf explicitly required
-      - structural_vcf
+      - structural_vcf_out
     run: tools/purple-2.48.cwl
   linx_step:
     in:
       sample:
         source: get_tumor_sample_name/out_string
       sv_vcf:
-        source: purple_step/structural_vcf
+        source: purple_step/structural_vcf_out
       purple_dir:
         source: purple_step/outdir
       output_dir:
@@ -902,9 +902,7 @@ steps:
       - fusions_detailed
       - vis_copy_number
       - vis_gene_exon
-
     run: tools/linx-1.11.cwl
-  #
   linx_visualiser_step:
     in:
       sample:
