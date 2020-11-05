@@ -17,7 +17,7 @@ requirements:
     coresMin: 2
     ramMin: 16000
   DockerRequirement:
-    dockerPull: quay.io/biocontainers/hmftools-purple:2.51--0
+    dockerPull: quay.io/biocontainers/hmftools-purple:2.51--1
   NetworkAccess:
     networkAccess: true
   InlineJavascriptRequirement:
