@@ -29,8 +29,9 @@ requirements:
     coresMin: 4
     ramMin: 16000
   DockerRequirement:
-    dockerPull: quay.io/biocontainers/hmftools-cobalt:1.8--1
-  ShellCommandRequirement: {}
+    dockerPull: quay.io/biocontainers/hmftools-cobalt:1.10--0
+  NetworkAccess:
+    networkAccess: true
   InlineJavascriptRequirement:
     expressionLib:
     - var get_start_memory = function(){
@@ -136,3 +137,7 @@ outputs:
     type: Directory
     outputBinding:
       glob: "$(inputs.output_dir)"
+
+
+successCodes:
+  - 0

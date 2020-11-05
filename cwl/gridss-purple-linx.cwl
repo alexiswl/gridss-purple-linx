@@ -774,7 +774,7 @@ steps:
         source: min_quality_cobalt
     out:
       - outdir
-    run: tools/cobalt-1.8.cwl
+    run: tools/cobalt-1.10.cwl
   purple_step:
     in:
       reference:
@@ -850,7 +850,7 @@ steps:
       - outdir
       # Structural vcf explicitly required
       - structural_vcf_out
-    run: tools/purple-2.48.cwl
+    run: tools/purple-2.51.cwl
   linx_step:
     in:
       sample:

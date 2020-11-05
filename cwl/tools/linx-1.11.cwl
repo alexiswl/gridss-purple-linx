@@ -16,6 +16,8 @@ requirements:
   DockerRequirement:
     dockerPull: quay.io/biocontainers/hmftools-linx:1.11--0
   ShellCommandRequirement: {}
+  NetworkAccess:
+    networkAccess: true
   InlineJavascriptRequirement:
     expressionLib:
       - var get_linx_version = function(){
@@ -270,3 +272,7 @@ outputs:
     type: File?
     outputBinding:
       glob: "$(inputs.output_dir)/$(inputs.sample).linx.vis_fusion.tsv"
+
+
+successCodes:
+  - 0

@@ -15,6 +15,8 @@ requirements:
     ramMin: 32000
   DockerRequirement:
     dockerPull: quay.io/biocontainers/hmftools-gripss:1.8--0
+  NetworkAccess:
+    networkAccess: true
   InlineJavascriptRequirement:
     expressionLib:
       - var get_start_memory = function(){
@@ -208,3 +210,7 @@ outputs:
       glob: "$(inputs.output_vcf)"
     secondaryFiles:
       - ".tbi"
+
+
+successCodes:
+  - 0

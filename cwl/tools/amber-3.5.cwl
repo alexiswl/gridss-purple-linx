@@ -25,6 +25,8 @@ requirements:
   DockerRequirement:
     dockerPull: quay.io/biocontainers/hmftools-amber:3.5--0
   ShellCommandRequirement: {}
+  NetworkAccess:
+    networkAccess: true
   InlineJavascriptRequirement:
     expressionLib:
     - var get_start_memory = function(){
@@ -185,3 +187,7 @@ outputs:
     type: Directory
     outputBinding:
       glob: "$(inputs.output_dir)"
+
+
+successCodes:
+  - 0

@@ -280,3 +280,7 @@ outputs:
     type: File
     outputBinding:
       glob: "$(inputs.assembly)"
+
+
+successCodes:
+  - 0

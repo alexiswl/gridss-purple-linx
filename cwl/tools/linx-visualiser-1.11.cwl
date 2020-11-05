@@ -16,6 +16,8 @@ requirements:
   DockerRequirement:
     dockerPull: quay.io/biocontainers/hmftools-linx:1.11--0
   ShellCommandRequirement: {}
+  NetworkAccess:
+    networkAccess: true
   InlineJavascriptRequirement:
     expressionLib:
       - var get_linx_version = function(){
@@ -317,3 +319,6 @@ outputs:
     type: Directory
     outputBinding:
       glob: "$(inputs.data_out)"
+
+successCodes:
+  - 0

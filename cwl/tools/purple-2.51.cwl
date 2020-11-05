@@ -17,7 +17,9 @@ requirements:
     coresMin: 2
     ramMin: 16000
   DockerRequirement:
-    dockerPull: quay.io/biocontainers/hmftools-purple:2.48--0
+    dockerPull: quay.io/biocontainers/hmftools-purple:2.51--0
+  NetworkAccess:
+    networkAccess: true
   InlineJavascriptRequirement:
     expressionLib:
     - var get_start_memory = function(){
@@ -369,3 +371,6 @@ outputs:
       - ".tbi"
     outputBinding:
       glob: "$(inputs.output_dir)/$(inputs.tumor).purple.somatic.vcf.gz"
+
+successCodes:
+  - 0

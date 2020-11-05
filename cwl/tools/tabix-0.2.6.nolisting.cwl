@@ -44,7 +44,6 @@ outputs:
     secondaryFiles:
       - ".tbi"
 
-
 # Ensure successful output
 successCodes:
   - 0
