@@ -20,7 +20,7 @@ requirements:
     listing:
       - $(inputs.reference)
       - $(inputs.bwa_reference)
-      - $(inputs.gridss_cache)
+      - $(inputs.reference_cache)
 
   InlineJavascriptRequirement:
     expressionLib:
@@ -58,7 +58,7 @@ requirements:
       }
 
 # Set as entrypoint in original dockerfile
-baseCommand: ["bash", "/opt/gridss/gridss.sh"]
+baseCommand: ["gridss"]
 
 arguments:
   - valueFrom: "$(get_array_paths(inputs.input_bams, \" \"))"
@@ -269,9 +269,6 @@ outputs:
     type: File
     outputBinding:
       glob: "$(inputs.assembly)"
-    secondaryFiles:
-      - pattern: ".bai"
-        required: true
 
 
 successCodes:

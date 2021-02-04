@@ -1018,9 +1018,6 @@ outputs:
   gridss_assembly_bam:
     type: File
     outputSource: gridss_step/assembly_bam
-    secondaryFiles:
-      - pattern: ".bai"
-        required: true
   amber_outdir:
     type: Directory
     outputSource: amber_step/outdir
