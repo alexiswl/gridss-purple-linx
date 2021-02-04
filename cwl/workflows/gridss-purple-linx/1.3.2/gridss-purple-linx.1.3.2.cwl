@@ -70,18 +70,32 @@ inputs:
         required: true
       - pattern: "^.dict"
         required: true
-  bwa_reference_files:
-    type: File[]?
+  bwa_reference:
+    type: File
     doc: |
       Bwa reference files to complement the fasta reference
       Note, tools will need to mount these files in the same directory as the fasta reference.
       Nameroot must equal the basename to the fasta reference for each file
-  reference_cache_files_gridss:
-    type: File[]?
+    secondaryFiles:
+      - pattern: "^.amb"
+        required: true
+      - pattern: "^.ann"
+        required: true
+      - pattern: "^.pac"
+        required: true
+      - pattern: "^.sa"
+        required: true
+      - pattern: "^.alt"
+        required: false
+  reference_cache_gridss:
+    type: File
     doc: |
       Skips creation of the reference genome in the gridss step if provided.
       Should have suffixes .grdss_cache and .img with the fasta_reference basename as the nameroot.
       Note, tools will need to mount this file in the same directory as the fasta reference
+    secondaryFiles:
+      - pattern: "^.gridss_cache"
+        required: true
   gc_profile:
     type: File
     doc: |
@@ -138,7 +152,6 @@ inputs:
     type: string?
     doc: |
       location of GRIDSS jar
-    default: "/opt/gridss/gridss-2.9.4-gridss-jar-with-dependencies.jar"
   workdir_gridss:
     type: string?
     doc: |
@@ -151,7 +164,7 @@ inputs:
       Possible steps are: setupreference, preprocess, assemble, call, all.
       WARNING: multiple instances of GRIDSS generating reference files at the same time will result in file corruption.
       Make sure these files are generated before runninng parallel GRIDSS jobs.
-    default: "all"
+      Default is "all"
   configuration_gridss:
     type: File?
     doc: |
@@ -458,7 +471,6 @@ inputs:
     type: string?
     doc: |
       Path to circos binary
-    default: "/usr/local/bin/circos"
   inner_radius_linx_visualiser:
     type: float?
     doc: |
@@ -587,7 +599,7 @@ steps:
         valueFrom: "$(self)_T"
     out:
       - out_string
-    run: expressions/string_or_default.cwl
+    run: ../../../expressions/string_or_default.cwl
   get_normal_sample_name:
     in:
       defined_string:
@@ -597,7 +609,7 @@ steps:
         valueFrom: "$(self)_N"
     out:
       - out_string
-    run: expressions/string_or_default.cwl
+    run: ../../../expressions/string_or_default.cwl
   gridss_step:
     in:
       input_bams:
@@ -605,10 +617,10 @@ steps:
         linkMerge: merge_flattened
       reference:
         source: fasta_reference
-      bwa_reference_files:
-        source: bwa_reference_files
-      gridss_reference_cache_files:
-        source: reference_cache_files_gridss
+      bwa_reference:
+        source: bwa_reference
+      reference_cache:
+        source: reference_cache_gridss
       output:
         source: sample_name
         valueFrom: "$(self).unfiltered.vcf.gz"
@@ -657,18 +669,11 @@ steps:
     out:
       - out_vcf
       - assembly_bam
-    run: tools/gridss-2.9.4.cwl
-  gridss_index_vcf_step:
-    in:
-      gzipped_vcf:
-        source: gridss_step/out_vcf
-    out:
-      - indexed_vcf
-    run: tools/tabix-0.2.6.nolisting.cwl
+    run: ../../../tools/gridss/2.9.4/gridss-2.9.4.cwl
   gripss_step:
     in:
       input_vcf:
-        source: gridss_index_vcf_step/indexed_vcf
+        source: gridss_step/out_vcf
       output_vcf:
         source: sample_name
         valueFrom: "$(self).vcf.gz"
@@ -708,7 +713,7 @@ steps:
         source: soft_max_normal_relative_support_gripss
     out:
       - gridss_filtered_vcf
-    run: tools/gripss-1.8.cwl
+    run: ../../../tools/gripss/1.9/gripss-1.9.cwl
   gripss_hard_filter_vcf_step:
     in:
       input_vcf:
@@ -718,7 +723,7 @@ steps:
         valueFrom: "$(self).filtered.vcf.gz"
     out:
       - gridss_hard_filtered_vcf
-    run: tools/gripss-hardfilter-1.8.cwl
+    run: ../../../tools/gripss/1.9/gripss-hardfilter-1.9.cwl
   amber_step:
     in:
       reference:
@@ -752,7 +757,7 @@ steps:
         source: validation_stringency
     out:
       - outdir
-    run: tools/amber-3.5.cwl
+    run: ../../../tools/amber/3.5/amber-3.5.cwl
   cobalt_step:
     in:
       reference:
@@ -774,7 +779,7 @@ steps:
         source: min_quality_cobalt
     out:
       - outdir
-    run: tools/cobalt-1.10.cwl
+    run: ../../../tools/cobalt/1.11/cobalt-1.11.cwl
   purple_step:
     in:
       reference:
@@ -850,7 +855,7 @@ steps:
       - outdir
       # Structural vcf explicitly required
       - structural_vcf_out
-    run: tools/purple-2.51.cwl
+    run: ../../../tools/purple/2.51/purple-2.51.cwl
   linx_step:
     in:
       sample:
@@ -902,7 +907,7 @@ steps:
       - fusions_detailed
       - vis_copy_number
       - vis_gene_exon
-    run: tools/linx-1.11.cwl
+    run: ../../../tools/linx/1.12/linx-1.12.cwl
   linx_visualiser_step:
     in:
       sample:
@@ -986,24 +991,36 @@ steps:
     out:
       - plot_outdir
       - data_outdir
-    run: tools/linx-visualiser-1.11.cwl
+    run: ../../../tools/linx/1.12/linx-visualiser-1.12.cwl
 
 # Outputs of the workflow
 outputs:
   # VCFs
   gridss_vcf:
     type: File
-    outputSource: gridss_index_vcf_step/indexed_vcf
+    outputSource: gridss_step/out_vcf
+    secondaryFiles:
+      - pattern: ".tbi"
+        required: true
   gripss_filtered_vcf:
     type: File
     outputSource: gripss_step/gridss_filtered_vcf
+    secondaryFiles:
+      - pattern: ".tbi"
+        required: true
   gripss_hard_filtered_vcf:
     type: File
     outputSource: gripss_hard_filter_vcf_step/gridss_hard_filtered_vcf
+    secondaryFiles:
+      - pattern: ".tbi"
+        required: true
   # Useful intermediate outputs
   gridss_assembly_bam:
     type: File
     outputSource: gridss_step/assembly_bam
+    secondaryFiles:
+      - pattern: ".bai"
+        required: true
   amber_outdir:
     type: Directory
     outputSource: amber_step/outdir

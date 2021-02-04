@@ -14,7 +14,7 @@ requirements:
     coresMin: 8
     ramMin: 32000
   DockerRequirement:
-    dockerPull: quay.io/biocontainers/hmftools-gripss:1.8--0
+    dockerPull: quay.io/biocontainers/hmftools-gripss:1.9--0
   NetworkAccess:
     networkAccess: true
   InlineJavascriptRequirement:
@@ -72,7 +72,7 @@ inputs:
     secondaryFiles:
       # Gzipped VCF Index
       - pattern: '.tbi'
-        required: false
+        required: true
   output_vcf:
     type: string
     doc: |
@@ -87,7 +87,8 @@ outputs:
     outputBinding:
       glob: "$(inputs.output_vcf)"
     secondaryFiles:
-      - ".tbi"
+      - pattern: ".tbi"
+        required: true
 
 successCodes:
   - 0

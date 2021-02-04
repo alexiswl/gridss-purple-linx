@@ -14,7 +14,7 @@ requirements:
     coresMin: 4
     ramMin: 16000
   DockerRequirement:
-    dockerPull: quay.io/biocontainers/hmftools-linx:1.11--0
+    dockerPull: quay.io/biocontainers/hmftools-linx:1.12--0
   ShellCommandRequirement: {}
   NetworkAccess:
     networkAccess: true
