@@ -111,7 +111,7 @@ inputs:
       Note, tools will need to mount this file in the same directory as the fasta reference
       Expects the ".img" file as input suffix. Must be the same nameroot as the fasta reference
     secondaryFiles:
-      - pattern: "^.gridss_cache"
+      - pattern: "^.gridsscache"
         required: true
   output:
     type: string

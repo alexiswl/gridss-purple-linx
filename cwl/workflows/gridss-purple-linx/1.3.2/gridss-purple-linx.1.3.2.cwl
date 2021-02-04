@@ -94,7 +94,7 @@ inputs:
       Should have suffixes .grdss_cache and .img with the fasta_reference basename as the nameroot.
       Note, tools will need to mount this file in the same directory as the fasta reference
     secondaryFiles:
-      - pattern: "^.gridss_cache"
+      - pattern: "^.gridsscache"
         required: true
   gc_profile:
     type: File
