@@ -15,7 +15,6 @@ requirements:
     ramMin: 16000
   DockerRequirement:
     dockerPull: quay.io/biocontainers/hmftools-linx:1.12--0
-  ShellCommandRequirement: {}
   NetworkAccess:
     networkAccess: true
   InlineJavascriptRequirement:
@@ -24,7 +23,7 @@ requirements:
           /*
           Used to obtain the jar path
           */
-          return "1.11-0";
+          return "1.12-0";
         }
       - var get_jar_file = function(){
           /*
@@ -53,9 +52,6 @@ requirements:
 
 # Use java -jar as baseCommand and plug in runtime memory options
 arguments:
-  - valueFrom: "mkdir -p $(inputs.output_dir);"
-    shellQuote: false
-    position: -6
   - valueFrom: "java"
     position: -5
   - prefix: "-Xms"

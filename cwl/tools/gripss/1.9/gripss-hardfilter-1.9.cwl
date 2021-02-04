@@ -35,7 +35,7 @@ requirements:
           /*
           Return this version of gripss
           */
-          return "1.8-0";
+          return "1.9-0";
         }
       - var get_gripss_jar = function(){
           /*
@@ -87,8 +87,7 @@ outputs:
     outputBinding:
       glob: "$(inputs.output_vcf)"
     secondaryFiles:
-      - pattern: ".tbi"
-        required: true
+      - ".tbi"
 
 successCodes:
   - 0

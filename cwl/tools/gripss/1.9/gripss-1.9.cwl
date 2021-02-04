@@ -35,7 +35,7 @@ requirements:
           /*
           Return this version of gripss
           */
-          return "1.8-0";
+          return "1.9-0";
         }
       - var get_gripss_jar = function(){
           /*
@@ -94,13 +94,13 @@ inputs:
       - pattern: "^.dict"
         required: true
   reference:
-    type: string?
+    type: string
     doc: |
       Optional name of reference sample, defaults to first sample in the gridss vcf
     inputBinding:
       prefix: "-reference"
   tumor:
-    type: string?
+    type: string
     doc: |
       Optional name of tumor sample, defaults to second sample in the gridss vcf
     inputBinding:
@@ -209,9 +209,7 @@ outputs:
     outputBinding:
       glob: "$(inputs.output_vcf)"
     secondaryFiles:
-      - pattern: ".tbi"
-        required: true
-
+      - ".tbi"
 
 successCodes:
   - 0

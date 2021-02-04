@@ -676,9 +676,13 @@ steps:
         source: gridss_step/out_vcf
       output_vcf:
         source: sample_name
-        valueFrom: "$(self).vcf.gz"
+        valueFrom: "$(self).gripss.somatic.vcf.gz"
       ref_genome:
         source: fasta_reference
+      reference:
+        source: get_normal_sample_name/out_string
+      tumor:
+        source: get_tumor_sample_name/out_string
       breakend_pon:
         source: breakend_pon
       breakpoint_hotspot:
@@ -720,7 +724,7 @@ steps:
         source: gripss_step/gridss_filtered_vcf
       output_vcf:
         source: sample_name
-        valueFrom: "$(self).filtered.vcf.gz"
+        valueFrom: "$(self).gripss.somatic.filtered.vcf.gz"
     out:
       - gridss_hard_filtered_vcf
     run: ../../../tools/gripss/1.9/gripss-hardfilter-1.9.cwl
@@ -1000,24 +1004,23 @@ outputs:
     type: File
     outputSource: gridss_step/out_vcf
     secondaryFiles:
-      - pattern: ".tbi"
-        required: true
+      - ".tbi"
   gripss_filtered_vcf:
     type: File
     outputSource: gripss_step/gridss_filtered_vcf
     secondaryFiles:
-      - pattern: ".tbi"
-        required: true
+      - ".tbi"
   gripss_hard_filtered_vcf:
     type: File
     outputSource: gripss_hard_filter_vcf_step/gridss_hard_filtered_vcf
     secondaryFiles:
-      - pattern: ".tbi"
-        required: true
+      - ".tbi"
   # Useful intermediate outputs
   gridss_assembly_bam:
     type: File
     outputSource: gridss_step/assembly_bam
+    secondaryFiles:
+      - ".bai"
   amber_outdir:
     type: Directory
     outputSource: amber_step/outdir

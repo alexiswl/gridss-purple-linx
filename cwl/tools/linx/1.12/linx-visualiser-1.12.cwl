@@ -15,7 +15,6 @@ requirements:
     ramMin: 16000
   DockerRequirement:
     dockerPull: quay.io/biocontainers/hmftools-linx:1.12--0
-  ShellCommandRequirement: {}
   NetworkAccess:
     networkAccess: true
   InlineJavascriptRequirement:
@@ -25,7 +24,7 @@ requirements:
           Get the version of linx used.
           Enables us to find jar path
           */
-          return "1.11-0"
+          return "1.12-0"
         }
       - var get_jar_file = function(){
           /*

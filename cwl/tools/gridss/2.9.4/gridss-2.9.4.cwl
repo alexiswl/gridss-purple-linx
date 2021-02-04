@@ -21,7 +21,24 @@ requirements:
       - $(inputs.reference)
       - $(inputs.bwa_reference)
       - $(inputs.reference_cache)
+      - entryname: run_gridss.sh
+        entry: |
+          #!/usr/bin/env bash
+          # Standard fail-safe
+          set -euo pipefail
 
+          # Resolves to an eval string to run gridss
+          # with all of the expected arguments from the cli
+          echo "Running gridss" 1>&2
+          $(get_eval_string())
+
+          # Index the output vcf
+          echo "Indexing output vcf $(inputs.output)" 1>&2
+          tabix -p vcf "$(inputs.output)"
+
+          # Index the assembly bam
+          echo "Indexing assembly bam $(inputs.assembly)" 1>&2
+          samtools index "$(inputs.assembly)"
   InlineJavascriptRequirement:
     expressionLib:
     - var get_start_memory = function(){
@@ -56,9 +73,15 @@ requirements:
     - var get_array_paths = function(array_obj, delimiter) {
         return array_obj.map(function(a) {return a.path;}).join(delimiter);
       }
+    - var get_eval_string = function(){
+        /*
+        Cant do this in the yaml file since "@" is illegal
+        */
+        return "eval gridss '\"\$@\"'";
+      }
 
 # Set as entrypoint in original dockerfile
-baseCommand: ["gridss"]
+baseCommand: ["bash", "run_gridss.sh"]
 
 arguments:
   - valueFrom: "$(get_array_paths(inputs.input_bams, \" \"))"
@@ -263,13 +286,13 @@ outputs:
     outputBinding:
       glob: "$(inputs.output)"
     secondaryFiles:
-      - pattern: ".tbi"
-        required: true
+     - ".tbi"
   assembly_bam:
     type: File
     outputBinding:
       glob: "$(inputs.assembly)"
-
+    secondaryFiles:
+     - ".bai"
 
 successCodes:
   - 0
