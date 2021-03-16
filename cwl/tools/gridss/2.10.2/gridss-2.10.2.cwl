@@ -12,47 +12,33 @@ requirements:
     coresMin: 8
     ramMin: 32000
   DockerRequirement:
-    dockerPull: umccr/gridss-cwl:2.9.4
+    dockerPull: quay.io/biocontainers/gridss:2.10.2--0
   ShellCommandRequirement: {}
   NetworkAccess:
     networkAccess: true
   InitialWorkDirRequirement:
-    listing: |
-      ${
-         /*
-         Initialise listing param with reference file and the .dict file
-         Fingers cross it adds the secondaryFile too
-         */
-         var listing = [{
-                         "entry": inputs.reference,
-                         "entryname": inputs.reference.basename
-                        }];
+    listing:
+      - $(inputs.reference)
+      - $(inputs.bwa_reference)
+      - $(inputs.gridss_cache)
+      - entryname: run_gridss.sh
+        entry: |
+          #!/usr/bin/env bash
+          # Standard fail-safe
+          set -euo pipefail
 
-         /*
-         Add the bwa_reference_files
-         */
-         if (inputs.bwa_reference_files !== null){
-           inputs.bwa_reference_files.forEach(function(f_obj){
-                listing.push({
-                    'entry': f_obj,
-                    'entryname': f_obj.basename
-                });
-           });
-         }
+          # Resolves to an eval string to run gridss
+          # with all of the expected arguments from the cli
+          echo "Running gridss" 1>&2
+          eval gridss '"\${@}"'
 
-         /*
-         Add the gridss cache files if present
-         */
-         if (inputs.gridss_reference_cache_files !== null){
-          inputs.gridss_reference_cache_files.forEach(function(f_obj){
-               listing.push({
-                   'entry': f_obj,
-                   'entryname': f_obj.basename
-               });
-          });
-         }
-         return listing;
-      }
+          # Index the output vcf
+          echo "Indexing output vcf $(inputs.output)" 1>&2
+          tabix -p vcf "$(inputs.output)"
+
+          # Index the assembly bam
+          echo "Indexing assembly bam $(inputs.assembly)" 1>&2
+          samtools index "$(inputs.assembly)"
 
   InlineJavascriptRequirement:
     expressionLib:
@@ -90,20 +76,15 @@ requirements:
       }
 
 # Set as entrypoint in original dockerfile
-baseCommand: ["bash", "/opt/gridss/gridss.sh"]
-
-arguments:
-  - valueFrom: "$(get_array_paths(inputs.input_bams, \" \"))"
-    # We need these arguments to be separated
-    shellQuote: false
-    # And ideally at the end of the command
-    position: 10000
+baseCommand: ["bash", "run_gridss.sh"]
 
 inputs:
   input_bams:
     type: File[]
     doc: |
       Array of input bam files, should be normal bam, tumour bam
+    inputBinding:
+      position: 100  # After all other commands
   reference:
     type: File
     doc: |
@@ -117,18 +98,38 @@ inputs:
     inputBinding:
       prefix: "--reference"
       valueFrom: "$(inputs.reference.basename)"
-  bwa_reference_files:
-    type: File[]?
+  bwa_reference:
+    type: File
     doc: |
-      Array of bwa reference files. These must have the same prefix as the reference file
-  gridss_reference_cache_files:
-    type: File[]?
+      Bwa reference files to complement the fasta reference
+      Note, tools will need to mount these files in the same directory as the fasta reference.
+      Nameroot must equal the basename to the fasta reference for each file.
+      Expected the ".bwt" file as input. Must be the same nameroot as the fasta reference
+    secondaryFiles:
+      - pattern: "^.amb"
+        required: true
+      - pattern: "^.ann"
+        required: true
+      - pattern: "^.pac"
+        required: true
+      - pattern: "^.sa"
+        required: true
+      - pattern: "^.alt"
+        required: false
+  reference_cache:
+    type: File
     doc: |
-      Optional, saves the creation of the gridss
+      Skips creation of the reference genome in the gridss step if provided.
+      Should have suffixes .grdss_cache and .img with the fasta_reference basename as the nameroot.
+      Note, tools will need to mount this file in the same directory as the fasta reference
+      Expects the ".img" file as input suffix. Must be the same nameroot as the fasta reference
+    secondaryFiles:
+      - pattern: "^.gridsscache"
+        required: true
   output:
     type: string
     doc: |
-      output gzipped VCF file
+      Output VCF file, this must end in ".vcf.gz"
     inputBinding:
       prefix: "--output"
   assembly:
@@ -150,7 +151,6 @@ inputs:
       Optional - location of GRIDSS jar
     inputBinding:
       prefix: "--jar"
-    default: "/opt/gridss/gridss-2.9.4-gridss-jar-with-dependencies.jar"
   workingdir:
     type: string?
     doc: |
@@ -158,7 +158,6 @@ inputs:
       Defaults to the current directory.
     inputBinding:
       prefix: "--workingdir"
-    default: "gridss-working"
   blacklist:
     type: File?
     doc: |
@@ -179,9 +178,9 @@ inputs:
       Possible steps are: setupreference, preprocess, assemble, call, all.
       WARNING: multiple instances of GRIDSS generating reference files at the same time will result in file corruption.
       Make sure these files are generated before runninng parallel GRIDSS jobs.
+      Defaults to 'all'
     inputBinding:
       prefix: "--steps"
-    default: "all"
   configuration:
     type: File?
     doc: |
@@ -276,11 +275,14 @@ outputs:
     type: File
     outputBinding:
       glob: "$(inputs.output)"
+    secondaryFiles:
+     - ".tbi"
   assembly_bam:
     type: File
     outputBinding:
       glob: "$(inputs.assembly)"
-
+    secondaryFiles:
+     - ".bai"
 
 successCodes:
   - 0
