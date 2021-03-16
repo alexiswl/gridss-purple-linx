@@ -20,7 +20,7 @@ requirements:
     listing:
       - $(inputs.reference)
       - $(inputs.bwa_reference)
-      - $(inputs.gridss_cache)
+      - $(inputs.reference_cache)
       - entryname: run_gridss.sh
         entry: |
           #!/usr/bin/env bash
