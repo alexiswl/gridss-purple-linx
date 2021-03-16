@@ -10,7 +10,7 @@ doc: |
 requirements:
   ResourceRequirement:
     coresMin: 8
-    ramMin: 32000
+    ramMin: 40000
   DockerRequirement:
     dockerPull: quay.io/biocontainers/gridss:2.10.2--0
   ShellCommandRequirement: {}
@@ -33,12 +33,16 @@ requirements:
           eval gridss '"\${@}"'
 
           # Index the output vcf
-          echo "Indexing output vcf $(inputs.output)" 1>&2
-          tabix -p vcf "$(inputs.output)"
+          if [[ ! -f "$(inputs.output).tbi" ]]; then
+              echo "Indexing output vcf $(inputs.output)" 1>&2
+              tabix -p vcf "$(inputs.output)"
+          fi
 
           # Index the assembly bam
-          echo "Indexing assembly bam $(inputs.assembly)" 1>&2
-          samtools index "$(inputs.assembly)"
+          if [[ ! -f "$(inputs.assembly).bai" ]]; then
+            echo "Indexing assembly bam $(inputs.assembly)" 1>&2
+            samtools index "$(inputs.assembly)"
+          fi
 
   InlineJavascriptRequirement:
     expressionLib:
