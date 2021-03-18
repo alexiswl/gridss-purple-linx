@@ -104,6 +104,32 @@ inputs:
     secondaryFiles:
       - pattern: "^.gridsscache"
         required: true
+  human_virus_reference_fasta:
+    type: File
+    doc: |
+      Human virus reference sequence used in gridss annotations step.
+      Must be both bwa indexed AND gridss-cached
+    secondaryFiles:
+      - pattern: ".amb"
+        required: true
+      - pattern: ".bwt"
+        required: true
+      - pattern: ".ann"
+        required: true
+      - pattern: ".fai"
+        required: true
+      - pattern: ".dict"
+        required: true
+      - pattern: ".img"
+        required: true
+      - pattern: ".gridsscache"
+        required: true
+      - pattern: ".masked"
+        required: true
+      - pattern: ".sa"
+        required: true
+      - pattern: ".pac"
+        required: true
   gc_profile:
     type: File
     doc: |
@@ -630,7 +656,7 @@ steps:
         source: reference_cache_gridss
       output:
         source: sample_name
-        valueFrom: "$(self).unfiltered.vcf.gz"
+        valueFrom: "$(self).gridss.driver.vcf.gz"
       workingdir:
         source: sample_name
         valueFrom: "$(self)_gridss/"
@@ -677,10 +703,22 @@ steps:
       - out_vcf
       - assembly_bam
     run: ../../../tools/gridss/2.10.2/gridss-2.10.2.cwl
+  gridss_annotation_step:
+    in:
+      reference_sequence:
+        source: human_virus_reference_fasta
+      input_vcf:
+        source: gridss_step/out_vcf
+      output_vcf_name:
+        source: sample_name
+        valueFrom: "$(self).gridss.unfiltered.vcf.gz"
+    out:
+      - output_vcf
+    run: ../../../tools/gridss/2.10.2/gridss-annotate-inserted-sequence-2.10.2.cwl
   gripss_step:
     in:
       input_vcf:
-        source: gridss_step/out_vcf
+        source: gridss_annotation_step/output_vcf
       output_vcf:
         source: sample_name
         valueFrom: "$(self).gripss.somatic.vcf.gz"
