@@ -42,9 +42,6 @@ requirements:
           */
           return "/usr/local/share/gridss-" + get_gridss_version() + "/gridss.jar";
         }
-  InitialWorkDirRequirement:
-    listing:
-      - $(inputs.reference_sequence)
 
 # Use java -jar as baseCommand and plug in runtime memory options
 baseCommand: ["java"]
@@ -104,7 +101,7 @@ inputs:
     label: output vcf name
     doc: |
       Annotated VCF file  Required.
-    type: File
+    type: string
     inputBinding:
       prefix: "OUTPUT="
       separate: false
@@ -138,7 +135,6 @@ inputs:
     inputBinding:
       prefix: "REFERENCE_SEQUENCE="
       separate: false
-      valueFrom: "$(self.basename)"
   # Optional args
   threads:
     label: threads

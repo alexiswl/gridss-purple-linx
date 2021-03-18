@@ -86,9 +86,12 @@ inputs:
   input_bams:
     type: File[]
     doc: |
-      Array of input bam files, should be normal bam, tumour bam
+      Array of input bam files, should be first the normal bam then the tumour bam
     inputBinding:
       position: 100  # After all other commands
+    secondaryFiles:
+      - pattern: ".bai"
+        required: true
   reference:
     type: File
     doc: |
