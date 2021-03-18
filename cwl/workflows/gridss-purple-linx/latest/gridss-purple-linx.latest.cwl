@@ -14,7 +14,7 @@ doc: |
   Gripss - 1.9
   Amber - 3.5
   Cobalt - 1.10
-  Purple - 2.53
+  Purple - 2.51
   Linx - 1.14
 
 requirements:
@@ -904,7 +904,7 @@ steps:
       - outdir
       # Structural vcf explicitly required
       - structural_vcf_out
-    run: ../../../tools/purple/2.53/purple-2.53.cwl
+    run: ../../../tools/purple/2.51/purple-2.51.cwl
   linx_step:
     in:
       sample:
