@@ -13,7 +13,6 @@ requirements:
     ramMin: 40000
   DockerRequirement:
     dockerPull: quay.io/biocontainers/gridss:2.10.2--0
-  ShellCommandRequirement: {}
   NetworkAccess:
     networkAccess: true
   InitialWorkDirRequirement:
@@ -58,21 +57,18 @@ requirements:
         */
         return max_ram - get_start_memory();
       }
-    - var get_runtime_threads = function(){
-        return runtime.cores
-      }
-    - var get_threads_val = function(inputs){
-        if (inputs.threads === null){
-          return get_runtime_threads();
+    - var get_threads_val = function(specified_threads){
+        if (specified_threads === null){
+          return runtime.cores;
         } else {
-          return inputs.threads;
+          return specified_threads;
         }
       }
-    - var get_jvmheap_val = function(inputs, runtime_ram){
-        if (inputs.jvmheap === null){
-          return get_max_memory_from_runtime_memory(runtime_ram) + "m";
+    - var get_jvmheap_val = function(specified_ram){
+        if (specified_ram === null){
+          return get_max_memory_from_runtime_memory(runtime.ram) + "m";
         } else {
-          return inputs.jvmheap;
+          return specified_ram;
         }
       }
     - var get_array_paths = function(array_obj, delimiter) {
@@ -82,11 +78,19 @@ requirements:
 # Set as entrypoint in original dockerfile
 baseCommand: ["bash", "run_gridss.sh"]
 
+arguments:
+  - position: 1
+    prefix: "--threads"
+    valueFrom: "$(get_threads_val(inputs.threads))"
+  - position: 2
+    prefix: "--jvmheap"
+    valueFrom: "$(get_jvmheap_val(inputs.jvmheap))"
+
 inputs:
   input_bams:
     type: File[]
     doc: |
-      Array of input bam files, should be first the normal bam then the tumour bam
+      Array of input bam files, should be normal bam, tumour bam
     inputBinding:
       position: 100  # After all other commands
     secondaryFiles:
@@ -149,9 +153,7 @@ inputs:
     type: int?
     doc: |
       number of threads to use
-    inputBinding:
-      prefix: "--threads"
-      valueFrom: "$(get_threads_val(inputs))"
+
   jar:
     type: string?
     doc: |
@@ -171,12 +173,6 @@ inputs:
       Optional - BED file containing regions to ignore
     inputBinding:
       prefix: "--blacklist"
-  repeatmaskerbed:
-    type: File?
-    doc: |
-      Optional - bedops rmsk2bed BED file for genome.
-    inputBinding:
-      prefix: "--repeatmaskerbed"
   steps:
     type: string?
     doc: |
@@ -218,9 +214,6 @@ inputs:
     type: string?
     doc: |
       size of JVM heap for assembly and variant calling.
-    inputBinding:
-      prefix: "--jvmheap"
-      valueFrom: "$(get_jvmheap_val(inputs, runtime.ram))"
   maxcoverage:
     type: int?
     doc: |
