@@ -99,6 +99,15 @@ inputs:
         Required: directory where all output files are written /path_to_sample_data/
       inputBinding:
         prefix: "-output_dir"
+    ref_genome_version:
+      type:
+        - type: enum
+          symbols:
+            - "19"
+            - "37"
+            - "38"
+      inputBinding:
+        prefix: "-ref_genome_version"
     # Modes / routines
     check_fusions:
       type: boolean?
@@ -110,7 +119,7 @@ inputs:
     check_drivers:
       type: boolean?
       doc: |
-        Optional - Discover and annotate gene fusions
+        Optional - run driver annotation logic
       inputBinding:
         prefix: "-check_drivers"
       default: false
@@ -201,6 +210,14 @@ inputs:
       type: string?
       doc: |
         Restrict fusion search to specified genes, separated by ';'
+    # Driver catalog file
+    driver_gene_panel:
+      label: driver_gene_panel
+      doc: |
+        TSV of driver genes. Mandatory if driver catalog enabled.
+      type: File?
+      inputBinding:
+        prefix: "-driver_gene_panel"
     # Logging
     write_vis_data:
       type: boolean?
