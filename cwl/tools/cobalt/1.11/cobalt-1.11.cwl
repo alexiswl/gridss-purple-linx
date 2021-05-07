@@ -46,19 +46,59 @@ requirements:
         */
         return max_ram - get_start_memory();
       }
+    - var get_threads_val = function(specified_threads){
+        /*
+        Set thread count number of cores specified
+        */
+        if (specified_threads === null){
+          return runtime.cores;
+        } else {
+          return specified_threads;
+        }
+      }
 
 # Use java -jar as baseCommand and plug in runtime memory options
 baseCommand: ["COBALT"]
 
 arguments:
+  # Mem args
   - prefix: "-Xms"
     separate: false
     valueFrom: "$(get_start_memory())m"
-    position: -2
+    position: -9
   - prefix: "-Xmx"
     separate: false
     valueFrom: "$(get_max_memory_from_runtime_memory(runtime.ram))m"
-    position: -1
+    position: -8
+  # Samtools JDK options
+  - prefix: "-Dsamjdk.reference_fasta="
+    separate: false
+    valueFrom: "$(inputs.ref_genome.path)"
+    position: -7
+  - prefix: "-Dsamjdk.use_async_io_read_samtools="
+    separate: false
+    valueFrom: "true"
+    position: -6
+  - prefix: "-Dsamjdk.use_async_io_write_samtools="
+    separate: false
+    valueFrom: "true"
+    position: -5
+  - prefix: "-Dsamjdk.use_async_io_write_tribble="
+    separate: false
+    valueFrom: "true"
+    position: -4
+  - prefix: "-Dsamjdk.buffer_size="
+    separate: false
+    valueFrom: "4194304"
+    position: -3
+  - prefix: "-Dsamjdk.async_io_read_threads="
+    separate: false
+    valueFrom: "$(get_threads_val(inputs.threads))"
+    position: -2
+  # threads use
+  - prefix: "-threads"
+    valueFrom: "$(get_threads_val(inputs.threads))"
+
 
 inputs:
   # Mandatory arguments
@@ -109,9 +149,6 @@ inputs:
     type: int?
     doc: |
       Number of threads
-    inputBinding:
-      prefix: "-threads"
-    default: 4
   min_quality:
     type: int?
     doc: |
@@ -119,11 +156,16 @@ inputs:
     inputBinding:
       prefix: "-min_quality"
   ref_genome:
-    type: File?
+    type: File
     doc: |
-      Path to reference genome fasta file if using CRAM files
+      Path to the ref genome fasta file.
     inputBinding:
       prefix: "-ref_genome"
+    secondaryFiles:
+      - pattern: ".fai"
+        required: true
+      - pattern: "^.dict"
+        required: true
   validation_stringency:
     type: string
     doc: |
