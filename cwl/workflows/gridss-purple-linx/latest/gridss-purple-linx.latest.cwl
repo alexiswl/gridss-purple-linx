@@ -1,5 +1,3 @@
-#!/usr/bin/env cwl-runner
-
 cwlVersion: v1.1
 class: Workflow
 
@@ -78,6 +76,15 @@ inputs:
         required: true
       - pattern: "^.dict"
         required: true
+  fasta_reference_version:
+    type:
+      - type: enum
+        symbols:
+          - "19"
+          - "37"
+          - "38"
+    doc: |
+      The reference version used by LINX as input as '-ref_genome_version' parameter
   bwa_reference:
     type: File
     doc: |
@@ -151,6 +158,11 @@ inputs:
     doc: |
       htsjdk SAM/BAM validation level (STRICT (default), LENIENT, or SILENT)
     default: "STRICT"
+  driver_gene_panel:
+    type: File
+    doc: |
+      TSV file of driver genes list.
+      Must be specified since check_drivers is always specified.
   # Optional workflow args
   normal_sample:
     type: string?
@@ -162,10 +174,6 @@ inputs:
     doc: |
       sample name of tumor. Must match the somatic snvvcf sample name. (Default: \${sample}_T)
   # Gridss - specific options
-  repeatmaskerbed_gridss:
-    type: File?
-    doc: |
-      Optional - bedops rmsk2bed BED file for genome.
   blacklist_gridss:
     type: File?
     doc: |
@@ -301,6 +309,9 @@ inputs:
     type: File?
     doc: |
       bed file of het SNP locations used by amber as -loci
+    secondaryFiles:
+      - pattern: ".tbi"
+        required: false
   threads_amber:
     type: int?
     doc: |
@@ -413,6 +424,14 @@ inputs:
     type: float?
     doc: |
       Norm factor increments  (default  0.01)
+  hotspots_purple:
+    label: hotspots
+    doc: |
+      VCF of somatic hotspot locations. Mandatory if driver catalog enabled.
+    type: File?
+    secondaryFiles:
+      - pattern: ".tbi"
+        required: false
   ploidy_penalty_factor_purple:
     type: float?
     doc: |
@@ -442,10 +461,6 @@ inputs:
     type: boolean?
     doc: |
       Optional - discover and annotate gene fusions
-  check_drivers_linx:
-    type: boolean?
-    doc: |
-      Optional - Discover and annotate gene fusions
   fragile_site_file_linx:
     type: File?
     doc: |
@@ -669,8 +684,6 @@ steps:
         source: jvmheap_gridss
       blacklist:
         source: blacklist_gridss
-      repeatmaskerbed:
-        source: repeatmaskerbed_gridss
       picardoptions:
         source: validation_stringency
         valueFrom: "VALIDATION_STRINGENCY=$(self)"
@@ -779,6 +792,8 @@ steps:
         source: get_normal_sample_name/out_string
       reference_bam:
         source: normal_bam
+      ref_genome:
+        source: fasta_reference
       tumor:
         source: get_tumor_sample_name/out_string
       tumor_bam:
@@ -813,6 +828,8 @@ steps:
         source: get_normal_sample_name/out_string
       reference_bam:
         source: normal_bam
+      ref_genome:
+        source: fasta_reference
       tumor:
         source: get_tumor_sample_name/out_string
       tumor_bam:
@@ -888,6 +905,12 @@ steps:
         source: min_norm_factor_purple
       norm_factor_increment:
         source: norm_factor_increment_purple
+      driver_catalog:
+        valueFrom: ${ return true; }
+      hotspots:
+        source: hotspots_purple
+      driver_gene_panel:
+        source: driver_gene_panel
       ploidy_penalty_factor:
         source: ploidy_penalty_factor_purple
       ploidy_penalty_min:
@@ -916,10 +939,12 @@ steps:
       output_dir:
         source: sample_name
         valueFrom: "$(self)_linx"
+      ref_genome_version:
+        source: fasta_reference_version
       check_fusions:
         source: check_fusions_linx
       check_drivers:
-        source: check_drivers_linx
+        valueFrom: ${ return true; }
       fragile_site_file:
         source: fragile_site_file_linx
       line_element_file:
@@ -938,6 +963,8 @@ steps:
         source: log_reportable_fusion_linx
       known_fusion_file:
         source: known_fusion_file_linx
+      driver_gene_panel:
+        source: driver_gene_panel
       fusion_gene_distance:
         source: fusion_gene_distance_linx
       restricted_fusion_genes:
