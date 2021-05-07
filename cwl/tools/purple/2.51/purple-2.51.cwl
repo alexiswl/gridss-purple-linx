@@ -1,6 +1,3 @@
-#!/usr/bin/env cwl-runner
-
-# Non-functional until secondaryFiles are introduced
 cwlVersion: v1.1
 class: CommandLineTool
 
@@ -11,6 +8,7 @@ doc: |
   to estimate the purity and copy number profile of a tumor sample.
 
   PURPLE supports both grch 37 and 38 reference assemblies.
+
 
 requirements:
   ResourceRequirement:
@@ -34,22 +32,58 @@ requirements:
         */
         return max_ram - get_start_memory();
       }
-  InitialWorkDirRequirement:
-    listing:
-      - $(inputs.ref_genome)
+    - var get_threads_val = function(specified_threads){
+        /*
+        Set thread count number of cores specified
+        */
+        if (specified_threads === null){
+          return runtime.cores;
+        } else {
+          return specified_threads;
+        }
+      }
 
 # Use java -jar as baseCommand and plug in runtime memory options
 baseCommand: ["PURPLE"]
+
 
 arguments:
   - prefix: "-Xms"
     separate: false
     valueFrom: "$(get_start_memory())m"
-    position: -2
+    position: -9
   - prefix: "-Xmx"
     separate: false
     valueFrom: "$(get_max_memory_from_runtime_memory(runtime.ram))m"
-    position: -1
+    position: -8
+  # Samtools JDK options
+  - prefix: "-Dsamjdk.reference_fasta="
+    separate: false
+    valueFrom: "$(inputs.ref_genome.path)"
+    position: -7
+  - prefix: "-Dsamjdk.use_async_io_read_samtools="
+    separate: false
+    valueFrom: "true"
+    position: -6
+  - prefix: "-Dsamjdk.use_async_io_write_samtools="
+    separate: false
+    valueFrom: "true"
+    position: -5
+  - prefix: "-Dsamjdk.use_async_io_write_tribble="
+    separate: false
+    valueFrom: "true"
+    position: -4
+  - prefix: "-Dsamjdk.buffer_size="
+    separate: false
+    valueFrom: "4194304"
+    position: -3
+  - prefix: "-Dsamjdk.async_io_read_threads="
+    separate: false
+    valueFrom: "$(get_threads_val(inputs.threads))"
+    position: -2
+  # threads use
+  - prefix: "-threads"
+    valueFrom: "$(get_threads_val(inputs.threads))"
 
 # Mandatory inputs
 inputs:
@@ -105,9 +139,6 @@ inputs:
     type: int?
     doc: |
       Number of  threads
-    inputBinding:
-      prefix: "-threads"
-    default: 2
   somatic_vcf:
     type: File?
     doc: |
@@ -136,7 +167,10 @@ inputs:
     secondaryFiles:
       - .tbi
   circos:
-    type: string?
+    type:
+      - string?
+      - File?
+    default: "/usr/local/bin/circos"
     doc: |
       Location of circos binary.
       Optional path to circos binary.
@@ -271,12 +305,21 @@ inputs:
       prefix: "-driver_catalog"
     default: false
   hotspots:
-    type: boolean?
+    type: File?
     doc: |
-      Database user  name.
+      Known somatic Hotspots
+    secondaryFiles:
+      - pattern: ".tbi"
+        required: false
     inputBinding:
       prefix: "-hotspots"
-    default: false
+  driver_gene_panel:
+    label: driver_gene_panel
+    doc: |
+      TSV of driver genes. Mandatory if driver catalog enabled.
+    type: File?
+    inputBinding:
+      prefix: "-driver_gene_panel"
   # Additional Optional Args
   max_norm_factor:
     type: float?
@@ -333,6 +376,7 @@ inputs:
     inputBinding:
       prefix: "-ploidy_penalty_sub_one_major_allele_multiplier"
 
+
 # Set outputs to the -output_dir parameter
 outputs:
   outdir:
@@ -372,5 +416,7 @@ outputs:
     outputBinding:
       glob: "$(inputs.output_dir)/$(inputs.tumor).purple.somatic.vcf.gz"
 
+
+# List of success codes
 successCodes:
   - 0
