@@ -24,7 +24,6 @@ requirements:
     ramMin: 32000
   DockerRequirement:
     dockerPull: quay.io/biocontainers/hmftools-amber:3.5--0
-  ShellCommandRequirement: {}
   NetworkAccess:
     networkAccess: true
   InlineJavascriptRequirement:
@@ -41,20 +40,61 @@ requirements:
         */
         return max_ram - get_start_memory();
       }
+    - var get_threads_val = function(specified_threads){
+        /*
+        Set thread count number of cores specified
+        */
+        if (specified_threads === null){
+          return runtime.cores;
+        } else {
+          return specified_threads;
+        }
+      }
 
 # Use java -jar as baseCommand and plug in runtime memory options
 baseCommand: ["AMBER"]
 
 # Memory options
 arguments:
+  # Run time options
   - prefix: "-Xms"
     separate: false
     valueFrom: "$(get_start_memory())m"
-    position: -2
+    position: -9
   - prefix: "-Xmx"
     separate: false
     valueFrom: "$(get_max_memory_from_runtime_memory(runtime.ram))m"
-    position: -1
+    position: -8
+  # Samtools JDK options
+  - prefix: "-Dsamjdk.reference_fasta="
+    separate: false
+    valueFrom: "$(inputs.ref_genome.path)"
+    position: -7
+  - prefix: "-Dsamjdk.use_async_io_read_samtools="
+    separate: false
+    valueFrom: "true"
+    position: -6
+  - prefix: "-Dsamjdk.use_async_io_write_samtools="
+    separate: false
+    valueFrom: "true"
+    position: -5
+  - prefix: "-Dsamjdk.use_async_io_write_tribble="
+    separate: false
+    valueFrom: "true"
+    position: -4
+  - prefix: "-Dsamjdk.buffer_size="
+    separate: false
+    valueFrom: "4194304"
+    position: -3
+  - prefix: "-Dsamjdk.async_io_read_threads="
+    separate: false
+    valueFrom: "$(get_threads_val(inputs.threads))"
+    position: -2
+  # Threading options
+  - prefix: "-threads"
+    valueFrom: "$(get_threads_val(inputs.threads))"
+    position: 1
+
 
 inputs:
   # Mandatory arguments
@@ -98,6 +138,9 @@ inputs:
     type: File?
     doc: |
       Path to vcf file containing likely heterozygous sites (see below). Gz files supported.
+    secondaryFiles:
+      - pattern: ".tbi"
+        required: false
     inputBinding:
       prefix: "-loci"
   # Optional Arguments
@@ -105,9 +148,6 @@ inputs:
     type: int?
     doc: |
       Number of threads
-    inputBinding:
-      prefix: "-threads"
-    default: 16
   min_mapping_quality:
     type: int?
     doc: |
@@ -146,13 +186,16 @@ inputs:
     inputBinding:
       prefix: "-max_het_af_percent"
   ref_genome:
-    type: File?
+    type: File
     doc: |
-      Path to the ref genome fasta file. Required only when using CRAM files.
+      Path to the ref genome fasta file.
     inputBinding:
       prefix: "-ref_genome"
     secondaryFiles:
-      - ".fai"
+      - pattern: ".fai"
+        required: true
+      - pattern: "^.dict"
+        required: true
   validation_stringency:
     type: string?
     doc: |
